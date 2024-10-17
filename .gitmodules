@@ -1,0 +1,9 @@
+[submodule "services"]
+	path = services
+	url = https://github.com/MyamazonguyGithub/services.git
+[submodule "util"]
+	path = util
+	url = https://github.com/MyamazonguyGithub/util.git
+[submodule "throttlers"]
+	path = throttlers
+	url = https://github.com/MyamazonguyGithub/api-rate-limiter.git
