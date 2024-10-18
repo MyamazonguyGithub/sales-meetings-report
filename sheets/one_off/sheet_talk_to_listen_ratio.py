@@ -1,13 +1,10 @@
-from pprint import pprint
-import re
-from numpy import add
 from algorithms.get_transcript import get_transcript_dfs
 from algorithms.talk_to_listen_ratio import calculate_talk_to_listen_durations
 from gspread import Worksheet
+from pprint import pprint
 from services.gspread import gspread_try_clear_with_ranges, gspread_try_get_all_records, gspread_try_update_range
-import pandas as pd
-
 from util.progress import print_progress_by_increment
+import pandas as pd
 
 
 
@@ -31,12 +28,14 @@ def update_talk_to_listen_ratio_sheet(meeting_sheets: Worksheet, sheet_talk_to_l
         print_progress_by_increment(all_meetings, idx, 1)
         meeting_df = get_meeting_df(meeting)
 
-        print(meeting_df.columns)
-        return
+        if meeting_df.empty:
+            continue
+
         sheet_df = sheet_df.append(meeting_df, ignore_index=True)
 
-    return
     update_talk_to_listen_ratio_sheet_with_df(sheet_talk_to_listen_ratio, sheet_df)
+
+    return sheet_df
 
     
 

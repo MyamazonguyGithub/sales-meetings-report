@@ -20,7 +20,7 @@ def get_transcript_dfs(transcript_id: str) -> dict:
 
     # Get meeting data
     transcript_data = response_data['data']['transcript']
-    attendees = transcript_data['meeting_attendees']
+    attendees = transcript_data['meeting_attendees'] or []
     attendee_emails = [attendee['email'] for attendee in attendees if attendee['email']]
     attendee_email_list = ', '.join(attendee_emails)
 
@@ -81,7 +81,7 @@ def get_transcript_dfs(transcript_id: str) -> dict:
         name_to_email[normalized_name] = email
 
     # For each sentence, add speaker_email and is_account_executive based on speaker_name
-    for sentence in sentences_data:
+    for sentence in sentences_data if sentences_data else []:
         if sentence.get('speaker_name') == None:
             sentence['speaker_name'] = "Unknown"
         

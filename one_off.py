@@ -21,7 +21,9 @@ def main():
 
     meeting_sheets = (sheet_closed_won_meetings, sheet_closed_lost_meetings)
 
-    update_talk_to_listen_ratio_sheet(meeting_sheets, sheet_talk_to_listen_ratio)
+    talk_listen_df = update_talk_to_listen_ratio_sheet(meeting_sheets, sheet_talk_to_listen_ratio)
+
+    return talk_listen_df
 
 
 if __name__ == '__main__':
