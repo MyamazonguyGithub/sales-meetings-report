@@ -1,4 +1,5 @@
 from algorithms.get_transcript import get_transcript_dfs
+from algorithms.question_distribution import calculate_question_distribution
 from algorithms.talk_to_listen_ratio import calculate_talk_to_listen_durations
 from gspread import Worksheet
 from pprint import pprint
@@ -96,6 +97,7 @@ def get_meeting_df(meeting) -> pd.DataFrame:
     meeting_df = transcript_dfs['meeting_df']
     sentences_df = transcript_dfs['sentences_df']
 
+
     durations = calculate_talk_to_listen_durations(sentences_df)
     meeting_df['sales_outcome'] = sales_outcome
     meeting_df['total_duration'] = durations['total_duration']
@@ -111,6 +113,24 @@ def get_meeting_df(meeting) -> pd.DataFrame:
     meeting_df['ae_talk_ratio_duration'] = durations['ae_talk_duration'] / total_duration if total_duration > 0 else 0
     meeting_df['client_talk_ratio_duration'] = durations['client_talk_duration'] / total_duration if total_duration > 0 else 0
     meeting_df['no_talk_ratio_duration'] = durations['no_talk_duration'] / total_duration if total_duration > 0 else 0
+
+    questions = calculate_question_distribution(sentences_df)
+    meeting_df['ae_total_questions'] = questions['ae_total_questions']
+    meeting_df['ae_question_ratio'] = questions['ae_question_ratio']
+    meeting_df['ae_questions_per_minute'] = questions['ae_questions_per_minute']
+    meeting_df['ae_first_question_timing_seconds'] = questions['ae_first_question_timing_seconds']
+    meeting_df['ae_entropy'] = questions['ae_entropy']
+    meeting_df['ae_gini_coefficient'] = questions['ae_gini_coefficient'] 
+    meeting_df['ae_ave_time_between_questions_seconds'] = questions['ae_ave_time_between_questions_seconds']
+    meeting_df['ae_questions_per_segment'] = ", ".join([str(q) for q in questions['ae_questions_per_segment']])
+    meeting_df['client_total_questions'] = questions['client_total_questions']
+    meeting_df['client_question_ratio'] = questions['client_question_ratio']
+    meeting_df['client_questions_per_minute'] = questions['client_questions_per_minute']
+    meeting_df['client_first_question_timing_seconds'] = questions['client_first_question_timing_seconds']
+    meeting_df['client_entropy'] = questions['client_entropy']
+    meeting_df['client_gini_coefficient'] = questions['client_gini_coefficient']
+    meeting_df['client_ave_time_between_questions_seconds'] = questions['client_ave_time_between_questions_seconds']
+    meeting_df['client_questions_per_segment'] = ", ".join([str(q) for q in questions['client_questions_per_segment']])
 
     return meeting_df
 
