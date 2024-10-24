@@ -56,8 +56,10 @@ def get_transcript_dfs(transcript_id: str) -> dict:
         "Kimberly Anne Caranay": "kimberly@myamazonguy.com",
         "John Aspinall": "john.aspinall@myamazonguy.com",
         "Matt Lopez": "matt.lopez@myamazonguy.com",
+        "Matthew Lopez": "matt.lopez@myamazonguy.com",
         "Dan Pope": "dan.pope@myamazonguy.com",
-        "Robert Runyon": "robert.runyon@myamazonguy.com"
+        "Robert Runyon": "robert.runyon@myamazonguy.com",
+        "Ed Santos": "eduardo.santos@myamazonguy.com"
     }
 
     # Build mapping from normalized speaker names to emails
