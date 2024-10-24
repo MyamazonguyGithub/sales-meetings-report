@@ -1,15 +1,15 @@
+import numpy as np
+import pandas as pd
 from algorithms.get_transcript import get_transcript_dfs
 from algorithms.question_distribution import calculate_question_distribution
+from algorithms.sentiment import set_emotional_reciprocity, set_overall_emotional_intensity_score, set_overall_sentiment_score, set_sentiment_balance_ratio, set_speaker_sentiment_contribution, set_speaker_sentiment_trend, set_speaker_sentiment_variability
 from algorithms.talk_to_listen_ratio import calculate_talk_to_listen_durations
 from gspread import Worksheet
 from services.gspread import (
-    gspread_try_clear_with_ranges,
     gspread_try_get_all_records,
-    gspread_try_update_range,
 )
 from sheets.one_off.util import update_sheet_with_df
 from util.progress import print_progress_by_increment
-import pandas as pd
 
 
 def update_metrics_per_transcript_sheet(
@@ -26,6 +26,7 @@ def update_metrics_per_transcript_sheet(
     """
 
     all_meetings = get_ids_and_outcomes(meeting_sheets)
+    all_meetings = all_meetings[:25]  + all_meetings[-28:-3] # Limit to 50 for testing
     sheet_df = pd.DataFrame()
 
     for idx, meeting in enumerate(all_meetings):
@@ -91,10 +92,14 @@ def get_meeting_df(meeting) -> pd.DataFrame:
     meeting_df = transcript_dfs["meeting_df"]
     sentences_df = transcript_dfs["sentences_df"]
 
+    if meeting_df.empty:
+        return meeting_df
+
     meeting_df["sales_outcome"] = meeting["sales_outcome"]
 
     update_meeting_df_with_talk_metrics(meeting_df, sentences_df)
     update_meeting_df_with_question_metrics(meeting_df, sentences_df)
+    update_meeting_df_with_sentiment_metrics(meeting_df, sentences_df)
 
     return meeting_df
 
@@ -114,29 +119,28 @@ def update_meeting_df_with_talk_metrics(meeting_df, sentences_df):
     meeting_df["client_talk_duration"] = durations["client_talk_duration"]
     meeting_df["no_talk_duration"] = durations["no_talk_duration"]
 
-    # Calculate ratios based on durations
-    ae_talk_duration = meeting_df["ae_talk_duration"]
-    client_talk_duration = meeting_df["client_talk_duration"]
-    no_talk_duration = meeting_df["no_talk_duration"]
-    total_duration = meeting_df["total_duration"]
+    # Extract scalar values using .iloc[0]
+    ae_talk_duration = meeting_df["ae_talk_duration"].iloc[0]
+    client_talk_duration = meeting_df["client_talk_duration"].iloc[0]
+    no_talk_duration = meeting_df["no_talk_duration"].iloc[0]
+    total_duration = meeting_df["total_duration"].iloc[0]
 
     total_talk_time = ae_talk_duration + client_talk_duration
 
-    meeting_df["ae_talk_ratio"] = (
-        ae_talk_duration / total_talk_time if total_talk_time > 0 else 0
-    )
-    meeting_df["client_talk_ratio"] = (
-        client_talk_duration / total_talk_time if total_talk_time > 0 else 0
-    )
-    meeting_df["ae_talk_ratio_duration"] = (
-        ae_talk_duration / total_duration if total_duration > 0 else 0
-    )
-    meeting_df["client_talk_ratio_duration"] = (
-        client_talk_duration / total_duration if total_duration > 0 else 0
-    )
-    meeting_df["no_talk_ratio_duration"] = (
-        no_talk_duration / total_duration if total_duration > 0 else 0
-    )
+    # Compute ratios using scalar values
+    ae_talk_ratio = ae_talk_duration / total_talk_time if total_talk_time > 0 else 0
+    client_talk_ratio = client_talk_duration / total_talk_time if total_talk_time > 0 else 0
+    ae_talk_ratio_duration = ae_talk_duration / total_duration if total_duration > 0 else 0
+    client_talk_ratio_duration = client_talk_duration / total_duration if total_duration > 0 else 0
+    no_talk_ratio_duration = no_talk_duration / total_duration if total_duration > 0 else 0
+
+    # Assign scalar values back to meeting_df
+    meeting_df["ae_talk_ratio"] = ae_talk_ratio
+    meeting_df["client_talk_ratio"] = client_talk_ratio
+    meeting_df["ae_talk_ratio_duration"] = ae_talk_ratio_duration
+    meeting_df["client_talk_ratio_duration"] = client_talk_ratio_duration
+    meeting_df["no_talk_ratio_duration"] = no_talk_ratio_duration
+
 
 
 def update_meeting_df_with_question_metrics(meeting_df, sentences_df):
@@ -182,3 +186,21 @@ def update_meeting_df_with_question_metrics(meeting_df, sentences_df):
     meeting_df["client_questions_per_segment"] = ", ".join(
         map(str, questions["client_questions_per_segment"])
     )
+
+
+def update_meeting_df_with_sentiment_metrics(meeting_df, sentences_df):
+    """
+    Calculate sentiment metrics and update the meeting DataFrame.
+
+    Args:
+        meeting_df (pd.DataFrame): The meeting DataFrame to update.
+        sentences_df (pd.DataFrame): The sentences DataFrame for calculations.
+    """
+
+    meeting_df, sentences_df = set_overall_sentiment_score(meeting_df, sentences_df)
+    meeting_df, sentences_df = set_overall_emotional_intensity_score(meeting_df, sentences_df)
+    meeting_df, sentences_df = set_sentiment_balance_ratio(meeting_df, sentences_df)
+    meeting_df, sentences_df = set_speaker_sentiment_contribution(meeting_df, sentences_df)
+    meeting_df, sentences_df = set_speaker_sentiment_variability(meeting_df, sentences_df)
+    meeting_df, sentences_df = set_speaker_sentiment_trend(meeting_df, sentences_df)
+    meeting_df, sentences_df = set_emotional_reciprocity(meeting_df, sentences_df)
