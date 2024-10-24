@@ -14,7 +14,9 @@ def get_indices() -> tuple:
         sys.exit(1)
 
     # Define the slice size and total length
-    SLICE_SIZE = 24
+    HOURS_PER_RUN = 6
+    SLICE_SIZE = 24 * HOURS_PER_RUN
+    LAST_START_INDEX = 2808 // HOURS_PER_RUN
     TOTAL_LENGTH = 2815
 
     # Check if the slice number is valid
@@ -22,7 +24,7 @@ def get_indices() -> tuple:
         raise ValueError(f"Slice number must be between 1 and {TOTAL_LENGTH // SLICE_SIZE + 1}")
 
     # Calculate start and end indices
-    start_index = min((slice_number - 1) * SLICE_SIZE, 2808)
+    start_index = min((slice_number - 1) * SLICE_SIZE, LAST_START_INDEX)
     end_index = min(slice_number * SLICE_SIZE, TOTAL_LENGTH)
 
     return start_index, end_index
