@@ -7,9 +7,15 @@ from algorithms.talk_to_listen_ratio import calculate_talk_to_listen_durations
 from gspread import Worksheet
 from services.gspread import (
     gspread_try_get_all_records,
+    gspread_try_get_cells_by_range,
+    gspread_try_get_service_account_from_dict,
+    gspread_try_get_service_account_from_file,
+    gspread_try_get_spreadsheet_by_id,
+    gspread_try_get_worksheet_by_id,
 )
 from sheets.batched_one_offs.batching import get_indices
 from sheets.batched_one_offs.util import update_sheet_with_df
+from sheets.one_off import sheet_metrics_per_transcript
 from util.progress import print_progress_by_increment
 
 
@@ -26,7 +32,19 @@ def update_metrics_per_transcript_sheet(
         sheet_question_distribution (gspread.Worksheet): The question distribution sheet.
     """
 
-    all_meetings = get_ids_and_outcomes(meeting_sheets)
+    # all_meetings = get_ids_and_outcomes(meeting_sheets)
+
+    # Patch update
+    service_account = gspread_try_get_service_account_from_file("secret_sales_meetings_report_service_account.json")
+    ss = gspread_try_get_spreadsheet_by_id(service_account, "19AYpEl2TeqUAAZ-pqGU3c9j6rtzzFbWgRrEjHA_ozYM")
+    sheet = gspread_try_get_worksheet_by_id(ss, 1963712501)
+    all_meetings = gspread_try_get_cells_by_range(sheet, "A3:E")
+    all_meetings = [
+        {"id": meeting[0], "sales_outcome": meeting[4]}
+        for meeting in all_meetings
+    ]
+    # Patch end
+
     start_idx, end_idx = get_indices()
     all_meetings = all_meetings[start_idx:end_idx]
     sheet_df = pd.DataFrame()
