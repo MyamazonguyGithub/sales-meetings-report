@@ -15,7 +15,7 @@ def get_indices() -> tuple:
     slice_number = int(sys.argv[1])
 
     # Define the slice size and total length
-    HOURS_PER_RUN = 6
+    HOURS_PER_RUN = 3
     SLICE_SIZE = 24 * HOURS_PER_RUN
     TOTAL_LENGTH = 2815
 
